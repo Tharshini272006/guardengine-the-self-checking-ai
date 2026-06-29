@@ -14,7 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          paper_id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          paper_id: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          paper_id?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          context_precision_score: number | null
+          created_at: string
+          faithfulness_score: number | null
+          id: string
+          relevancy_score: number | null
+          retry_count: number
+          role: string
+          session_id: string
+          status: string | null
+        }
+        Insert: {
+          content: string
+          context_precision_score?: number | null
+          created_at?: string
+          faithfulness_score?: number | null
+          id?: string
+          relevancy_score?: number | null
+          retry_count?: number
+          role: string
+          session_id: string
+          status?: string | null
+        }
+        Update: {
+          content?: string
+          context_precision_score?: number | null
+          created_at?: string
+          faithfulness_score?: number | null
+          id?: string
+          relevancy_score?: number | null
+          retry_count?: number
+          role?: string
+          session_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      papers: {
+        Row: {
+          created_at: string
+          file_path: string
+          file_url: string | null
+          id: string
+          persona: Json | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          file_url?: string | null
+          id?: string
+          persona?: Json | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          file_url?: string | null
+          id?: string
+          persona?: Json | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      query_telemetry: {
+        Row: {
+          created_at: string
+          failure_reasons: Json | null
+          id: string
+          latency_ms: number | null
+          message_id: string
+          query_history: Json | null
+        }
+        Insert: {
+          created_at?: string
+          failure_reasons?: Json | null
+          id?: string
+          latency_ms?: number | null
+          message_id: string
+          query_history?: Json | null
+        }
+        Update: {
+          created_at?: string
+          failure_reasons?: Json | null
+          id?: string
+          latency_ms?: number | null
+          message_id?: string
+          query_history?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "query_telemetry_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

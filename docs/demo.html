@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GuardEngine — AI that checks itself before it speaks</title>
+<style>
+  :root{
+    --bg:#0B1020;
+    --card:#151A2D;
+    --border:#1E2640;
+    --text:#F4F6FB;
+    --text-dim:#9CA3C4;
+    --text-faint:#5C6584;
+    --blue:#3B82F6;
+    --purple:#A78BFA;
+    --green:#22C55E;
+    --amber:#F59E0B;
+    --red:#EF4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    overflow-x:hidden;
+  }
+  canvas#dotfield{
+    position:fixed; top:0; left:0; width:100%; height:100%; z-index:0;
+  }
+  .content{position:relative; z-index:1;}
+
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:24px 48px; max-width:1280px; margin:0 auto;
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:600; font-size:18px;}
+  .brand svg{width:28px; height:28px;}
+  nav a.cta{
+    background:var(--blue); color:#fff; padding:10px 20px; border-radius:8px;
+    text-decoration:none; font-size:14px; font-weight:500;
+    transition:opacity .2s;
+  }
+  nav a.cta:hover{opacity:.85;}
+
+  .hero{
+    max-width:880px; margin:80px auto 40px; padding:0 24px; text-align:center;
+  }
+  .hero .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:6px 14px; font-size:13px; color:var(--text-dim); margin-bottom:28px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .hero h1{
+    font-size:56px; font-weight:600; line-height:1.1; letter-spacing:-0.02em;
+    margin-bottom:20px;
+  }
+  .hero h1 span{color:var(--blue);}
+  .hero p{
+    font-size:19px; color:var(--text-dim); line-height:1.6; max-width:620px;
+    margin:0 auto 36px;
+  }
+  .hero .actions{display:flex; gap:14px; justify-content:center;}
+  .btn-primary{
+    background:var(--blue); color:#fff; padding:14px 28px; border-radius:10px;
+    text-decoration:none; font-weight:500; font-size:15px;
+    box-shadow:0 0 0 1px rgba(59,130,246,.4);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 4px 20px rgba(59,130,246,.35);}
+  .btn-secondary{
+    background:transparent; color:var(--text); padding:14px 28px; border-radius:10px;
+    border:1px solid var(--border); text-decoration:none; font-weight:500; font-size:15px;
+    transition:border-color .15s;
+  }
+  .btn-secondary:hover{border-color:var(--text-faint);}
+
+  /* pipeline animation */
+  .pipeline-wrap{
+    max-width:1000px; margin:64px auto; padding:32px 24px;
+  }
+  .pipeline{
+    display:flex; align-items:center; justify-content:center; gap:0;
+    flex-wrap:nowrap; overflow-x:auto; padding:24px 0;
+  }
+  .pstep{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    min-width:108px; position:relative;
+  }
+  .pstep .node{
+    width:56px; height:56px; border-radius:14px; background:var(--card);
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--text-dim); font-weight:500;
+    transition:border-color .3s, box-shadow .3s;
+  }
+  .pstep.active .node{
+    border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.15);
+    color:var(--blue);
+  }
+  .pstep.judge.active .node{
+    border-color:var(--purple); box-shadow:0 0 0 3px rgba(167,139,250,.15);
+    color:var(--purple);
+  }
+  .pstep.success .node{
+    border-color:var(--green); color:var(--green); background:#0F2419;
+  }
+  .pstep label{font-size:12px; color:var(--text-faint);}
+  .pconnector{
+    width:48px; height:1.5px; background:var(--border); position:relative; flex-shrink:0;
+  }
+  .pconnector .flow{
+    position:absolute; top:0; left:-20px; width:20px; height:1.5px;
+    background:var(--blue);
+    animation:flow 1.8s linear infinite;
+    opacity:0;
+  }
+  .pconnector.active .flow{opacity:1;}
+  @keyframes flow{0%{left:-20px;}100%{left:48px;}}
+
+  .scorecard{
+    max-width:420px; margin:0 auto; background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:20px 24px; display:flex; align-items:center;
+    justify-content:space-between; gap:16px; opacity:0; transform:translateY(8px);
+    transition:opacity .4s, transform .4s;
+  }
+  .scorecard.show{opacity:1; transform:translateY(0);}
+  .scorecard .badge{
+    display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500;
+    color:var(--green); background:rgba(34,197,94,.1); padding:6px 12px; border-radius:20px;
+  }
+  .scorecard .metrics{display:flex; gap:14px; font-size:13px; color:var(--text-dim); font-family:monospace;}
+  .scorecard .metrics b{color:var(--text);}
+
+  /* tool stack marquee */
+  .stack-section{padding:60px 0; text-align:center;}
+  .stack-section h3{font-size:14px; color:var(--text-faint); font-weight:500; letter-spacing:.05em; text-transform:uppercase; margin-bottom:32px;}
+  .marquee-track{
+    display:flex; overflow:hidden; position:relative;
+    mask-image:linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  }
+  .marquee-inner{
+    display:flex; gap:64px; align-items:center; flex-shrink:0;
+    animation:scroll 24s linear infinite;
+    padding:0 32px;
+  }
+  @keyframes scroll{
+    from{transform:translateX(0);}
+    to{transform:translateX(-50%);}
+  }
+  .tool{
+    display:flex; flex-direction:column; align-items:center; gap:10px; min-width:80px;
+  }
+  .tool .icon{
+    width:48px; height:48px; border-radius:50%; background:var(--card); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tool span{font-size:12px; color:var(--text-faint); font-weight:500;}
+
+  footer{text-align:center; padding:48px 24px; color:var(--text-faint); font-size:13px;}
+</style>
+</head>
+<body>
+
+<canvas id="dotfield"></canvas>
+
+<div class="content">
+
+  <nav>
+    <div class="brand">
+      <svg viewBox="0 0 48 68" fill="none">
+        <path d="M24 2L44 12V32C44 50 32 60 24 66C16 60 4 50 4 32V12Z" fill="#151A2D" stroke="#3B82F6" stroke-width="2"/>
+        <path d="M14 34L22 42L34 26" stroke="#3B82F6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      GuardEngine
+    </div>
+    <a href="#try" class="cta">Try live demo</a>
+  </nav>
+
+  <section class="hero">
+    <div class="eyebrow"><span class="dot"></span> Self-correcting RAG, verified in real time</div>
+    <h1>AI that checks itself <span>before it speaks</span></h1>
+    <p>Upload a research paper. Ask anything. Every answer is generated, judged, and re-checked against the source before you ever see it — with a faithfulness score and full audit trail attached.</p>
+    <div class="actions">
+      <a href="#try" class="btn-primary">Try live demo</a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+  </section>
+
+  <section class="pipeline-wrap" id="how">
+    <div class="pipeline" id="pipeline">
+      <div class="pstep" data-step="0"><div class="node">validate</div><label>0.1s</label></div>
+      <div class="pconnector" data-c="0"><div class="flow"></div></div>
+      <div class="pstep" data-step="1"><div class="node">retrieve</div><label>top-5</label></div>
+      <div class="pconnector" data-c="1"><div class="flow"></div></div>
+      <div class="pstep" data-step="2"><div class="node">generate</div><label>8B</label></div>
+      <div class="pconnector" data-c="2"><div class="flow"></div></div>
+      <div class="pstep judge" data-step="3"><div class="node">judge</div><label>70B</label></div>
+      <div class="pconnector" data-c="3"><div class="flow"></div></div>
+      <div class="pstep" data-step="4"><div class="node">router</div><label>thresholds</label></div>
+      <div class="pconnector" data-c="4"><div class="flow"></div></div>
+      <div class="pstep" data-step="5"><div class="node">finalize</div><label>done</label></div>
+    </div>
+    <div class="scorecard" id="scorecard">
+      <div class="badge"><span>✓</span> verified</div>
+      <div class="metrics">F: <b>0.93</b> &nbsp; R: <b>0.88</b> &nbsp; P: <b>0.76</b> &nbsp; retries: <b>0</b></div>
+    </div>
+  </section>
+
+  <section class="stack-section">
+    <h3>Built with</h3>
+    <div class="marquee-track">
+      <div class="marquee-inner" id="marqueeInner"></div>
+    </div>
+  </section>
+
+  <footer id="try">
+    GuardEngine — built by Tharshini DJ · <a href="https://github.com/Tharshini272006/GUARDENGINE" style="color:var(--text-dim);">source on GitHub</a>
+  </footer>
+
+</div>
+
+<script>
+// ---------- DotField background ----------
+const canvas = document.getElementById('dotfield');
+const ctx = canvas.getContext('2d');
+let dots = [];
+let mouse = {x:-9999, y:-9999};
+const SPACING = 28;
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  dots = [];
+  for(let x = 0; x < canvas.width + SPACING; x += SPACING){
+    for(let y = 0; y < canvas.height + SPACING; y += SPACING){
+      dots.push({x, y, baseR: 1.3, r: 1.3, baseOpacity:0.18, opacity:0.18, color:[156,163,196]});
+    }
+  }
+}
+window.addEventListener('resize', resize);
+window.addEventListener('mousemove', e=>{mouse.x=e.clientX; mouse.y=e.clientY;});
+window.addEventListener('mouseleave', ()=>{mouse.x=-9999; mouse.y=-9999;});
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const RADIUS = 140;
+  for(const d of dots){
+    const dx = d.x - mouse.x, dy = d.y - mouse.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    let targetR = d.baseR, targetO = d.baseOpacity;
+    let targetColor = [156,163,196];
+    if(dist < RADIUS){
+      const t = 1 - dist / RADIUS;
+      targetR = d.baseR + t * 2.6;
+      targetO = d.baseOpacity + t * 0.65;
+      targetColor = [
+        156 + (61-156)*t,
+        163 + (130-163)*t,
+        196 + (246-196)*t
+      ];
+    }
+    d.r += (targetR - d.r) * 0.15;
+    d.opacity += (targetO - d.opacity) * 0.15;
+    d.color[0] += (targetColor[0]-d.color[0])*0.15;
+    d.color[1] += (targetColor[1]-d.color[1])*0.15;
+    d.color[2] += (targetColor[2]-d.color[2])*0.15;
+
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(${d.color[0]|0},${d.color[1]|0},${d.color[2]|0},${d.opacity})`;
+    ctx.fill();
+  }
+  requestAnimationFrame(draw);
+}
+resize();
+draw();
+
+// ---------- pipeline step animation ----------
+const steps = document.querySelectorAll('.pstep');
+const connectors = document.querySelectorAll('.pconnector');
+const scorecard = document.getElementById('scorecard');
+let stepIndex = 0;
+
+function runPipeline(){
+  steps.forEach(s=>s.classList.remove('active','success'));
+  connectors.forEach(c=>c.classList.remove('active'));
+  scorecard.classList.remove('show');
+
+  function activateStep(i){
+    if(i >= steps.length){
+      setTimeout(()=>{ scorecard.classList.add('show'); }, 200);
+      setTimeout(runPipeline, 3200);
+      return;
+    }
+    steps[i].classList.add('active');
+    if(i === steps.length-1) steps[i].classList.add('success');
+    if(i > 0) connectors[i-1].classList.remove('active');
+    if(i < connectors.length) connectors[i].classList.add('active');
+    setTimeout(()=>activateStep(i+1), 480);
+  }
+  activateStep(0);
+}
+runPipeline();
+
+// ---------- tool marquee ----------
+const tools = [
+  {name:'React', color:'#3B82F6'},
+  {name:'FastAPI', color:'#22C55E'},
+  {name:'LangGraph', color:'#A78BFA'},
+  {name:'Groq', color:'#F97316'},
+  {name:'ChromaDB', color:'#EC4899'},
+  {name:'Supabase', color:'#22C55E'},
+  {name:'PyMuPDF', color:'#60A5FA'},
+  {name:'Vite', color:'#A78BFA'},
+];
+const marqueeInner = document.getElementById('marqueeInner');
+function renderTools(){
+  let html = '';
+  for(let rep=0; rep<2; rep++){
+    for(const t of tools){
+      html += `<div class="tool"><div class="icon"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="${t.color}" stroke-width="1.5"/></svg></div><span>${t.name}</span></div>`;
+    }
+  }
+  marqueeInner.innerHTML = html;
+}
+renderTools();
+</script>
+</body>
+</html>

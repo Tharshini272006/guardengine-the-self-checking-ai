@@ -294,8 +294,7 @@ Every query produces a telemetry record, fully decoupled from the execution path
 ## Author
 
 **Tharshini DJ**
-B.Tech AI/ML · SNS College of Technology, Coimbatore
-Class of 2028
+B.Tech AI/ML
 
 [GitHub](https://github.com/Tharshini272006)
 
@@ -305,7 +304,7 @@ Class of 2028
 @software{guardengine2025,
   author = {Tharshini DJ},
   title  = {GuardEngine: Autonomous Runtime Guardrails for Self-Correcting RAG},
-  year   = {2025},
+  year   = {2026},
   url    = {https://github.com/Tharshini272006/GUARDENGINE}
 }
 ```

@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="./assets/hero-banner.svg" alt="GuardEngine — autonomous runtime guardrails for research-paper RAG" width="100%"/>
+<img src="./assets/hero-banner-full.svg" alt="GuardEngine — autonomous runtime guardrails for research-paper RAG" width="100%"/>
 
-<br/>
+<br/><br/>
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-async-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -12,8 +12,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-gray?style=flat-square)](./LICENSE)
 
 **[Live demo](https://guardengine.vercel.app)** · **[Report a bug](https://github.com/Tharshini272006/GUARDENGINE/issues)** · **[Technical report](#)**
-
-> *"The only production RAG system that verifies before it speaks — with real auth, a real product, and a real audit trail."*
 
 </div>
 
@@ -294,7 +292,8 @@ Every query produces a telemetry record, fully decoupled from the execution path
 ## Author
 
 **Tharshini DJ**
-B.Tech AI/ML
+B.Tech AI/ML · SNS College of Technology, Coimbatore
+Class of 2028
 
 [GitHub](https://github.com/Tharshini272006)
 
@@ -304,7 +303,7 @@ B.Tech AI/ML
 @software{guardengine2025,
   author = {Tharshini DJ},
   title  = {GuardEngine: Autonomous Runtime Guardrails for Self-Correcting RAG},
-  year   = {2026},
+  year   = {2025},
   url    = {https://github.com/Tharshini272006/GUARDENGINE}
 }
 ```
